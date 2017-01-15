@@ -22,42 +22,42 @@
 
 
 function memUsage() {
-	MEM_INFO=$( < /proc/meminfo )
-	MEM_INFO=$( echo $( echo $( MEM_INFO=${MEM_INFO// /}; echo ${MEM_INFO//kB/}) ) )
-	for M in $MEM_INFO; do
-		case ${M//:*} in
-			"MemTotal") MEM_USED=$((MEM_USED+=${M//*:})); MEM_TOTAL=${M//*:} ;;
-			"ShMem") MEM_USED=$((MEM_USED+=${M//*:})) ;;
-			"MemFree"|"Buffers"|"Cached"|"SReclaimable") MEM_USED=$((MEM_USED-=${M//*:})) ;;
+	mem_info=$(</proc/meminfo)
+	mem_info=$(echo $(echo $(mem_info=${mem_info// /}; echo ${mem_info//kB/})))
+	for m in $mem_info; do
+		case ${m//:*} in
+			"MemTotal") memused=$((memused+=${m//*:})); memtotal=${m//*:} ;;
+			"ShMem") memused=$((memused+=${m//*:})) ;;
+			"MemFree"|"Buffers"|"Cached"|"SReclaimable") memused=$((memused-=${m//*:})) ;;
 		esac
 	done
-	MEM_USED=$((MEM_USED / 1024))
-	MEM_TOTAL=$((MEM_TOTAL / 1024))
-	PERCENT=$( echo $( echo "scale = 2; (${MEM_USED} / ${MEM_TOTAL})" | bc -l | awk -F '.' '{print $2}') )
+	memused=$((memused / 1024))
+	memtotal=$((memtotal / 1024))
+    percent=$(echo $(echo "scale = 2; ($memused / $memtotal)" | bc -l | awk -F '.' '{print $2}'))
 
-	echo "${MEM_USED} MB out of ${MEM_TOTAL} MB (${PERCENT}%)"
+	echo "${memused} MB out of ${memtotal} MB" "(${percent}%)"
 }
 
 function cpu() {
 	CPU=$( awk 'BEGIN{FS=":"} /model name/ { print $2; exit }' /proc/cpuinfo | awk 'BEGIN{FS="@"; OFS="\n"} { print $1; exit }' )
-	CPUN=$( grep -c '^processor' /proc/cpuinfo )
+	CPUN=$(grep -c '^processor' /proc/cpuinfo)
 
-	LOC="/sys/devices/system/cpu/cpu0/cpufreq"
-	BL="${LOC}/bios_limit"
-	SMF="${LOC}/scaling_max_freq"
-	if [ -f "${BL}" ] && [ -r "${BL}" ]; then
-		CPU_MHZ=$( awk '{print $1/1000}' "${BL}" )
-	elif [ -f "${SMF}" ] && [ -r "${SMF}" ]; then
-		CPU_MHZ=$( awk '{print $1/1000}' "${SMF}" )
+	loc="/sys/devices/system/cpu/cpu0/cpufreq"
+	bl="${loc}/bios_limit"
+	smf="${loc}/scaling_max_freq"
+	if [ -f "$bl" ] && [ -r "$bl" ]; then
+		cpu_mhz=$(awk '{print $1/1000}' "$bl")
+	elif [ -f "$smf" ] && [ -r "$smf" ]; then
+		cpu_mhz=$(awk '{print $1/1000}' "$smf")
 	else
-		CPU_MHZ=$( awk -F':' '/cpu MHz/{ print int($2+.5) }' /proc/cpuinfo | head -n 1 )
+		cpu_mhz=$(awk -F':' '/cpu MHz/{ print int($2+.5) }' /proc/cpuinfo | head -n 1)
 	fi
-	if [ -n "${CPU_MHZ}" ]; then
-		if [ $( echo ${CPU_MHZ} | cut -d . -f 1 ) -gt 999 ]; then
-			CPU_GHZ=$( awk '{print $1/1000}' <<< "${CPU_MHZ}" )
-			CPUFREQ="${CPU_GHZ}GHz"
+	if [ -n "$cpu_mhz" ]; then
+		if [ $(echo $cpu_mhz | cut -d. -f1) -gt 999 ]; then
+			cpu_ghz=$(awk '{print $1/1000}' <<< "${cpu_mhz}")
+			cpufreq="${cpu_ghz}GHz"
 		else
-			CPUFREQ="${CPU_MHZ}MHz"
+			cpufreq="${cpu_mhz}MHz"
 		fi
 	fi
 
@@ -66,21 +66,31 @@ function cpu() {
 	else
 		CPUN=""
 	fi
-	if [ -z "${CPUFREQ}" ]; then
+	if [ -z "$cpufreq" ]; then
 		CPU="${CPUN}${CPU}"
 	else
-		CPU="${CPU} ${CPUN} @ ${CPUFREQ}"
+		CPU="$CPU $CPUN @ ${cpufreq}"
 	fi
 
 	echo $( sed -r 's/\([tT][mM]\)|\([Rr]\)|[pP]rocessor|CPU//g' <<< "${CPU}" | xargs )
 }
 
-function diskUsage() {
-	USED=$( df -h | grep /home | awk '{print $3}' )
-	ALL=$( df -h | grep /home | awk '{print $2}' )
-	PERCENT=$( df -h | grep /home | awk '{print $5}' )
+function cpu_usage() {
+    grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage "%"}'
+}
 
-	echo "${USED} out of ${ALL} (${PERCENT})"
+function disk_usage() {
+
+    used=$( df -h | grep /dev/sdb3 | awk '{print $3}')
+    all=$( df -h | grep /dev/sdb3 | awk '{print $2}' ) 
+    percent=$( df -h | grep /dev/sdb3 | awk '{print $5}' )
+
+    echo "$used out of $all ($percent)"
+}
+
+function package_updates() {
+    apt-get -s dist-upgrade | awk '/^Inst/ { print $2 }' | wc -l
+
 }
 
 function updates() {
@@ -104,26 +114,26 @@ function updates() {
 clear
 
 echo ""
-echo ""
-echo ""
-echo "   \$\$\$\$\$\$\$\$\ \$\$\        \$\$\$\$\$\$\   \$\$\$\$\$\$\  \$\$\   \$\$\       \$\$\$\$\$\$\$\   \$\$\$\$\$\$\  \$\$\   \$\$\ "
-echo "   \$\$  _____|\$\$ |      \$\$  __\$\$\ \$\$  __\$\$\ \$\$ |  \$\$ |      \$\$  __\$\$\ \$\$  __\$\$\ \$\$ |  \$\$ |"
-echo "   \$\$ |      \$\$ |      \$\$ /  \$\$ |\$\$ /  \__|\$\$ |  \$\$ |      \$\$ |  \$\$ |\$\$ /  \$\$ |\\$\$\ \$\$  |"
-echo "   \$\$\$\$\$\    \$\$ |      \$\$\$\$\$\$\$\$ |\\$\$\$\$\$\$\  \$\$\$\$\$\$\$\$ |      \$\$\$\$\$\$\$\ |\$\$ |  \$\$ | \\$\$\$\$  / "
-echo "   \$\$  __|   \$\$ |      \$\$  __\$\$ | \____\$\$\ \$\$  __\$\$ |      \$\$  __\$\$\ \$\$ |  \$\$ | \$\$  \$\$<  "
-echo "   \$\$ |      \$\$ |      \$\$ |  \$\$ |\$\$\   \$\$ |\$\$ |  \$\$ |      \$\$ |  \$\$ |\$\$ |  \$\$ |\$\$  /\\$\$\ "
-echo "   \$\$ |      \$\$\$\$\$\$\$\$\ \$\$ |  \$\$ |\\$\$\$\$\$\$  |\$\$ |  \$\$ |      \$\$\$\$\$\$\$  | \$\$\$\$\$\$  |\$\$ /  \$\$ |"
-echo "   \__|      \________|\__|  \__| \______/ \__|  \__|      \_______/  \______/ \__|  \__|"
-echo ""
+echo "       ________                    __    __      __                                                                        "
+echo "      |        \                  |  \  |  \    |  \                                                                       "                             
+echo "      | \$\$\$\$\$\$\$\$______   __    __  \\$\$ _| \$\$_   | \$\$  ______    ______    ______                             "
+echo "      | \$\$__   /      \ |  \  |  \|  \|   \$\$ \  | \$\$ /      \  /      \  /      \                                    "
+echo "      | \$\$  \ |  \$\$\$\$\$\$\| \$\$  | \$\$| \$\$ \\$\$\$\$\$\$  | \$\$|  \$\$\$\$\$\$\|  \$\$\$\$\$\$\|  \$\$\$\$\$\$\ "
+echo "      | \$\$\$\$\$ | \$\$   \\$\$| \$\$  | \$\$| \$\$  | \$\$ __ | \$\$| \$\$  | \$\$| \$\$  | \$\$| \$\$  | \$\$          "
+echo "      | \$\$    | \$\$      | \$\$__/ \$\$| \$\$  | \$\$|  \| \$\$| \$\$__/ \$\$| \$\$__/ \$\$| \$\$__/ \$\$               "
+echo "      | \$\$    | \$\$       \\$\$    \$\$| \$\$   \\$\$  \$\$| \$\$ \\$\$    \$\$ \\$\$    \$\$| \$\$    \$\$             "
+echo "       \\$\$     \\$\$        \\$\$\$\$\$\$  \\$\$    \\$\$\$\$  \\$\$  \\$\$\$\$\$\$   \\$\$\$\$\$\$ | \$\$\$\$\$\$\$     "
+echo "                                                                        | \$\$                                             "
+echo "                                                                        | \$\$                                             "    
+echo "                                                                         \\$\$                                             "    
 echo ""
 echo "     Today's date      :  $( date "+%B %d, %Y (%A)" )"
-echo "     Current time      :  $( date "+%I:%M %p %Z" )"
+echo "     Current time      :  $( date +"%T" )"
 echo "     Operating system  :  $( source /etc/os-release; echo ${PRETTY_NAME} )"
-echo "     Kernel version    :  $( uname -rv )"
-echo "     Architecture      :  $( uname -m )"
+echo "     Kernel version    :  $( uname -r )"
 echo "     Processor         :  $( cpu )"
-echo "     CPU usage         :  $( grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage "%"}' )"
+echo "     CPU Usage         :  $( cpu_usage )"
 echo "     Memory usage      :  $( memUsage )"
-echo "     Disk usage        :  $( diskUsage )"
+echo "     Disk usage        :  $( disk_usage )" 
            updates
 echo ""
