@@ -147,7 +147,35 @@ echo '                                 .cXKc. '
 echo ""
 echo ""
 else
-echo "     $( jp2a kronic.jpg ) "
+echo '                        .                      . '
+echo '                    ;dkc.                      .ckd, '
+echo '                 .oNWo                            oWXo. '
+echo '                kWMK.                              .NMWk. '
+echo '              lWMMN.                                .NMMWl '
+echo '             xMMMW.                                  .WMMMx '
+echo '         .. xMMMMk                                    kMMMMx .. '
+echo '        .d :MMMMMc                                    cMMMMM: d. '
+echo "       .Xd xMMMMM:                                    :MMMMMx dX. "
+echo "      .KMd kMMMMMo                                    oMMMMMk dMK. "
+echo "      oMMK lMMMMMN.                                  .NMMMMMl KMMo "
+echo "      OMMMo.XMMMMMO                                  OMMMMMX.oMMMO "
+echo "      OMMMMklWMMMMMd                                OMMMMMWlkMMMMO "
+echo "      :WMMMMNWMMMMMMk.                            .0MMMMMMWNMMMMW: "
+echo "       lWMMMMMMMMMMMMWx'                        'xWMMMMMMMMMMMMWl "
+echo "        ,KMMMMMMMMMMMMMM0:                    :0MMMMMMMMMMMMMMK, "
+echo "        Ok0NMMMMMMMMMMMMMMNOo:. 'coddoc' .:oONMMMMMMMMMMMMMMN0kO' "
+echo '        .NMMMMMMMMMMMMMMMMMMMMNKWKKWWKKWKNMMMMMMMMMMMMMMMMMMMMX. '
+echo '         .OWMMMMMMMMMMMMMMMMMMMN,cl..lc,NMMMMMMMMMMMMMMMMMMMWO. '
+echo '           .l0WMMMMMMWkc;;cxXMMX..o..o..XMMXxc;;ckWMMMMMMW0l. '
+echo '              .:;codd.       .OMXl.  .lXMO.       .ddoc;:. '
+echo '                             .oWMMMKXMMMWo. '
+echo '                            .OMMMMMMMMMMMM0. '
+echo '                          :kWMMMMMMMMMMMMMMWk: '
+echo '                          .l0k0MMMMMMMMMM0k0l. '
+echo '                              oKWMMMMMMWKo '
+echo '                                 .cXKc. '
+echo
+echo ""
 echo ""
 echo "     Today's date      : $( date "+%B %d, %Y (%A)" )"
 echo "     Current time      : $( date "+%I:%M %p %Z" )"
