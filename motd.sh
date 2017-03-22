@@ -81,9 +81,9 @@ function cpu_usage() {
 
 function disk_usage() {
 
-    used=$( df -h | grep /home | awk '{print $3}')
-    all=$( df -h | grep /home | awk '{print $2}' ) 
-    percent=$( df -h | grep /home | awk '{print $5}' )
+    used=$( df -h | grep "/dev/md2" | awk '{print $3}')
+    all=$( df -h | grep "/dev/md2" | awk '{print $2}' ) 
+    percent=$( df -h | grep "/dev/md2" | awk '{print $5}' )
 
     echo "$used out of $all ($percent)"
 }
