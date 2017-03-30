@@ -33,8 +33,8 @@ alias reposync="repo sync -c -f -j64 --no-clone-bundle --no-tags"
 
 # CD To AOSiP
 
-   if [ $PWD == "~/AOSiP/" ] # Put your source dir here
-   else
+   if [ $PWD != "~/AOSiP/" ] # Put your source dir here
+   then
    cd ~/AOSiP/
    fi
 
